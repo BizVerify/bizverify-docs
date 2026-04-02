@@ -2,6 +2,9 @@
   --sl-color-accent-low: #1e3a5f;
   --sl-color-accent: #3b82f6;
   --sl-color-accent-high: #93bbfd;
+}
+
+:root[data-theme='dark'] {
   --sl-color-bg: #09090b;
   --sl-color-bg-nav: #18181b;
   --sl-color-bg-sidebar: #111113;
