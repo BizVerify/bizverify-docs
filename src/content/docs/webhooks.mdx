@@ -1,0 +1,108 @@
+---
+title: Webhooks
+description: Receive real-time notifications when verification jobs complete, fail, or are refunded.
+---
+
+## Overview
+
+Instead of polling `GET /v1/verify/status/:jobId`, you can provide a `webhook_url` when creating a verification request. BizVerify will `POST` to that URL when the job completes, fails, or is refunded.
+
+## Setting up webhooks
+
+Include `webhook_url` in your verification request:
+
+```bash
+curl -X POST https://api.bizverify.co/v1/verify \
+  -H "Content-Type: application/json" \
+  -H "X-API-Key: bv_live_abc123..." \
+  -d '{
+    "entity_name": "Acme Corporation",
+    "jurisdiction": "us-fl",
+    "webhook_url": "https://your-app.com/webhooks/bizverify"
+  }'
+```
+
+## Events
+
+### `verification.completed`
+
+Sent when a verification job finishes successfully.
+
+```json
+{
+  "event": "verification.completed",
+  "job_id": "job_abc123",
+  "jurisdiction": "us-fl",
+  "entity_name": "Acme Corporation",
+  "status": "completed",
+  "data": {
+    "entity_name": "ACME CORPORATION",
+    "entity_type": "corporation",
+    "status": "active",
+    "jurisdiction": "us-fl",
+    "formation_date": "2015-03-12",
+    "confidence": 95
+  },
+  "credits_charged": 1,
+  "credits_refunded": false,
+  "completed_at": "2026-04-02T12:00:00.000Z"
+}
+```
+
+### `verification.failed`
+
+Sent when a verification job fails after all retry attempts.
+
+```json
+{
+  "event": "verification.failed",
+  "job_id": "job_abc123",
+  "jurisdiction": "us-fl",
+  "entity_name": "Acme Corporation",
+  "status": "failed",
+  "error": "Data source timeout: the official source did not respond in time",
+  "credits_charged": 1,
+  "credits_refunded": true,
+  "completed_at": "2026-04-02T12:05:00.000Z"
+}
+```
+
+:::note
+Credits are automatically refunded when a job fails.
+:::
+
+### `verification.refunded`
+
+Sent when an admin manually refunds credits for a job.
+
+```json
+{
+  "event": "verification.refunded",
+  "job_id": "job_abc123",
+  "jurisdiction": "us-fl",
+  "entity_name": "Acme Corporation",
+  "status": "refunded",
+  "credits_charged": 1,
+  "credits_refunded": true,
+  "completed_at": "2026-04-02T12:10:00.000Z"
+}
+```
+
+## Delivery details
+
+| Property | Value |
+|----------|-------|
+| Method | `POST` |
+| Content-Type | `application/json` |
+| User-Agent | `BizVerify-Webhook/1.0` |
+| Timeout | 10 seconds per attempt |
+| Retries | 3 retries (4 total attempts) |
+| Backoff | Exponential (1s, 2s, 4s) |
+| Success | Any `2xx` HTTP response |
+
+## Best practices
+
+- **Respond quickly.** Return a `200` status immediately and process the payload asynchronously. If your endpoint takes longer than 10 seconds, the delivery will be marked as failed and retried.
+- **Handle duplicates.** In rare cases (e.g., network issues), you may receive the same event more than once. Use `job_id` as an idempotency key.
+- **Verify the source.** Webhook requests come from BizVerify's servers. You can verify the `User-Agent: BizVerify-Webhook/1.0` header as a basic check.
+- **Use HTTPS.** Always use an `https://` URL for your webhook endpoint.

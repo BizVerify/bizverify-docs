@@ -1,0 +1,131 @@
+---
+title: MCP Setup
+description: Connect BizVerify to Claude, Cursor, VS Code, and other AI tools via the Model Context Protocol.
+---
+
+import { Tabs, TabItem } from '@astrojs/starlight/components';
+
+The [Model Context Protocol (MCP)](https://modelcontextprotocol.io) lets AI tools call BizVerify directly. No SDK or code needed — paste a config snippet and start verifying businesses in natural language.
+
+## Connect your AI tool
+
+<Tabs syncKey="tool">
+  <TabItem label="Claude Desktop">
+  Add to your Claude Desktop config (`claude_desktop_config.json`):
+
+  ```json
+  {
+    "mcpServers": {
+      "bizverify": {
+        "type": "streamable-http",
+        "url": "https://api.bizverify.co/mcp"
+      }
+    }
+  }
+  ```
+  </TabItem>
+
+  <TabItem label="Claude Code">
+  Run in your terminal:
+
+  ```bash
+  claude mcp add bizverify --transport streamable-http https://api.bizverify.co/mcp
+  ```
+  </TabItem>
+
+  <TabItem label="Cursor">
+  Add to your Cursor MCP config:
+
+  ```json
+  {
+    "mcpServers": {
+      "bizverify": {
+        "type": "streamable-http",
+        "url": "https://api.bizverify.co/mcp"
+      }
+    }
+  }
+  ```
+  </TabItem>
+
+  <TabItem label="VS Code / Copilot">
+  Add to `.vscode/mcp.json` in your workspace:
+
+  ```json
+  {
+    "servers": {
+      "bizverify": {
+        "type": "streamable-http",
+        "url": "https://api.bizverify.co/mcp"
+      }
+    }
+  }
+  ```
+  </TabItem>
+
+  <TabItem label="ChatGPT">
+  ```
+  Settings → Connected Tools → Add MCP Server
+  URL: https://api.bizverify.co/mcp
+  Auth: OAuth (automatic)
+  ```
+  </TabItem>
+
+  <TabItem label="Windsurf">
+  Add to `~/.codeium/windsurf/mcp_config.json`:
+
+  ```json
+  {
+    "mcpServers": {
+      "bizverify": {
+        "serverUrl": "https://api.bizverify.co/mcp"
+      }
+    }
+  }
+  ```
+  </TabItem>
+</Tabs>
+
+:::tip
+**Other tools** (Cline, Continue.dev, JetBrains IDEs) also support Streamable HTTP. Use `https://api.bizverify.co/mcp` as the server URL.
+
+For **stdio-only clients**, use the `mcp-remote` bridge:
+```bash
+npx mcp-remote https://api.bizverify.co/mcp
+```
+:::
+
+## Authentication
+
+On first use, your AI tool will prompt you to authenticate via OAuth. This is automatic — follow the browser flow to log in and authorize.
+
+Alternatively, pass your API key directly via the `X-API-Key` header if your tool supports custom headers.
+
+## Available tools
+
+| Tool | Auth | Cost | Description |
+|------|------|------|-------------|
+| `get_config` | No | Free | Get service config (jurisdictions, pricing) |
+| `list_jurisdictions` | No | Free | List all supported jurisdictions |
+| `verify_business` | Yes | 1-25 credits | Verify a business entity |
+| `search_entities` | Yes | 2 credits/jurisdiction | Search for entities by name |
+| `check_job_status` | Yes | Free | Check async verification job status |
+| `get_entity` | Yes | Free | Get cached entity details |
+| `get_entity_history` | Yes | 5 credits | Get historical verification snapshots |
+| `get_account` | Yes | Free | View account details and credit balance |
+| `purchase_credits` | Yes | Free | Get a Stripe checkout link to buy credits |
+
+## Example prompts
+
+Try these with any connected AI tool:
+
+- *"Verify that Acme Corporation is an active business in Florida"*
+- *"Search for Tesla in Delaware and Texas"*
+- *"Check if my verification job job_abc123 has completed"*
+- *"How many credits do I have left?"*
+- *"What jurisdictions does BizVerify support?"*
+
+## Learn more
+
+- [BizVerify MCP landing page](https://bizverify.co/mcp) — visual overview and demo
+- [Model Context Protocol docs](https://modelcontextprotocol.io) — MCP specification

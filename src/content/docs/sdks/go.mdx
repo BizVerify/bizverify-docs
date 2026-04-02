@@ -1,0 +1,131 @@
+---
+title: Go SDK
+description: Install and use the BizVerify Go SDK with zero external dependencies.
+---
+
+## Installation
+
+```bash
+go get github.com/bizverify/bizverify-go
+```
+
+Requires Go 1.21+. Zero external dependencies (stdlib only).
+
+## Quick start
+
+```go
+package main
+
+import (
+    "context"
+    "fmt"
+    "log"
+
+    bv "github.com/bizverify/bizverify-go"
+)
+
+func main() {
+    client := bv.New(bv.WithAPIKey("bv_live_..."))
+
+    resp, err := client.Verification.Verify(context.Background(), bv.VerifyParams{
+        EntityName:   "Acme Corporation",
+        Jurisdiction: "us-fl",
+    })
+    if err != nil {
+        log.Fatal(err)
+    }
+    fmt.Println(resp.Status)
+}
+```
+
+## Passwordless auth
+
+```go
+ctx := context.Background()
+client := bv.New()
+
+// Step 1: Request a code
+_, err := client.Auth.RequestAccess(ctx, "you@example.com", true)
+
+// Step 2: Verify code — client auto-configures
+resp, err := client.Auth.VerifyAccess(ctx, "you@example.com", "123456", nil)
+fmt.Println("API Key:", resp.APIKey)
+```
+
+## Verify and wait
+
+```go
+job, err := client.Verification.VerifyAndWait(ctx, bv.VerifyParams{
+    EntityName:   "Acme Inc",
+    Jurisdiction: "us-fl",
+}, &bv.PollOptions{
+    PollInterval: 2 * time.Second,
+    Timeout:      120 * time.Second,
+    OnStatusChange: func(status *bv.JobStatusResponse) {
+        log.Printf("Status: %s\n", status.Status)
+    },
+})
+```
+
+## Search
+
+```go
+// Single page
+resp, err := client.Search.Find(ctx, bv.SearchParams{
+    EntityName:   "Acme",
+    Jurisdiction: "us-fl",
+    Limit:        10,
+})
+for _, r := range resp.Results {
+    fmt.Printf("%s (confidence: %d%%)\n", r.EntityName, r.Confidence)
+}
+
+// Auto-paginate
+iter := client.Search.FindAll(ctx, bv.SearchParams{EntityName: "Acme"})
+for iter.Next() {
+    r := iter.Value()
+    fmt.Println(r.EntityName)
+}
+if err := iter.Err(); err != nil {
+    log.Fatal(err)
+}
+```
+
+## Configuration
+
+```go
+client := bv.New(
+    bv.WithAPIKey("bv_live_..."),
+    bv.WithBaseURL("https://api.bizverify.co"),
+    bv.WithMaxRetries(2),
+    bv.WithTimeout(30 * time.Second),
+)
+```
+
+## Error handling
+
+```go
+import "errors"
+
+entity, err := client.Entities.Get(ctx, "ent_nonexistent")
+if err != nil {
+    var notFound *bv.NotFoundError
+    var noCredits *bv.InsufficientCreditsError
+    var rateLimit *bv.RateLimitError
+
+    switch {
+    case errors.As(err, &notFound):
+        fmt.Printf("Not found: %s\n", notFound.Message)
+    case errors.As(err, &noCredits):
+        fmt.Println("Need more credits")
+    case errors.As(err, &rateLimit):
+        fmt.Printf("Retry after %ds\n", rateLimit.RetryAfter)
+    default:
+        log.Fatal(err)
+    }
+}
+```
+
+## Full reference
+
+See the [SDK README on GitHub](https://github.com/bizverify/bizverify-go) for the complete API.

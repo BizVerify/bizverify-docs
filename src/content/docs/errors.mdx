@@ -1,0 +1,150 @@
+---
+title: Error Codes
+description: Complete reference of BizVerify API error codes, HTTP statuses, and example responses.
+---
+
+## Error response format
+
+All API errors return a consistent JSON structure:
+
+```json
+{
+  "error": {
+    "code": "ERROR_CODE",
+    "message": "Human-readable description",
+    "details": {},
+    "suggestion": "Actionable next step"
+  }
+}
+```
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `code` | string | Machine-readable error code (use this for programmatic handling) |
+| `message` | string | Human-readable description |
+| `details` | object? | Additional context (varies by error) |
+| `suggestion` | string? | Actionable hint for resolving the error |
+
+## Error codes
+
+### Authentication errors
+
+| Code | HTTP | Description |
+|------|------|-------------|
+| `UNAUTHORIZED` | 401 | Missing or invalid authentication |
+| `INVALID_API_KEY` | 401 | API key not found or malformed |
+| `API_KEY_REVOKED` | 401 | API key has been revoked |
+| `INVALID_CREDENTIALS` | 401 | Wrong password (legacy auth) |
+| `EMAIL_NOT_VERIFIED` | 403 | Email must be verified before using paid endpoints |
+| `INSUFFICIENT_SCOPE` | 403 | OAuth token lacks required scope |
+| `FORBIDDEN` | 403 | Action not permitted |
+| `ACCOUNT_DELETED` | 403 | Account has been deleted |
+| `ACCOUNT_DISABLED` | 403 | Account has been disabled by admin |
+
+### Billing errors
+
+| Code | HTTP | Description |
+|------|------|-------------|
+| `INSUFFICIENT_CREDITS` | 402 | Not enough credits for this operation |
+| `PAYMENT_FAILED` | 402 | Payment processing failed |
+
+### Validation errors
+
+| Code | HTTP | Description |
+|------|------|-------------|
+| `VALIDATION_ERROR` | 400 | Request body, query, or path params failed validation |
+| `JURISDICTION_NOT_SUPPORTED` | 400 | Jurisdiction code is not recognized or not active |
+| `TOO_MANY_JURISDICTIONS` | 400 | Search requested too many jurisdictions |
+| `INVALID_VERIFICATION_CODE` | 400 | OTP code is incorrect |
+| `VERIFICATION_CODE_EXPIRED` | 400 | OTP code has expired (15-minute window) |
+| `TERMS_NOT_ACCEPTED` | 422 | Must accept terms of service |
+
+### Not found errors
+
+| Code | HTTP | Description |
+|------|------|-------------|
+| `NOT_FOUND` | 404 | Generic resource not found |
+| `ENTITY_NOT_FOUND` | 404 | Entity ID does not exist |
+| `JOB_NOT_FOUND` | 404 | Job ID does not exist |
+
+### Rate limiting
+
+| Code | HTTP | Description |
+|------|------|-------------|
+| `RATE_LIMIT_EXCEEDED` | 429 | Too many requests — check `details.retry_after_seconds` |
+
+### Conflict errors
+
+| Code | HTTP | Description |
+|------|------|-------------|
+| `EMAIL_ALREADY_EXISTS` | 409 | Email is already registered |
+| `ALREADY_REFUNDED` | 409 | Job has already been refunded |
+
+### Server errors
+
+| Code | HTTP | Description |
+|------|------|-------------|
+| `DATA_SOURCE_UNAVAILABLE` | 503 | Government data source is temporarily unavailable |
+| `DATA_SOURCE_TIMEOUT` | 504 | Government data source timed out |
+| `INTERNAL_ERROR` | 500 | Unexpected server error |
+
+## Example error responses
+
+### Insufficient credits
+
+```json
+{
+  "error": {
+    "code": "INSUFFICIENT_CREDITS",
+    "message": "Insufficient credits. Required: 15, available: 3.",
+    "details": {
+      "required": 15,
+      "available": 3
+    },
+    "suggestion": "Purchase more credits via POST /v1/billing/purchase. Check available packages at GET /v1/billing."
+  }
+}
+```
+
+### Invalid jurisdiction
+
+```json
+{
+  "error": {
+    "code": "JURISDICTION_NOT_SUPPORTED",
+    "message": "Jurisdiction 'us-ca' is not supported.",
+    "details": {
+      "provided": "us-ca",
+      "suggestions": ["us-co", "us-ct"]
+    },
+    "suggestion": "Use GET /v1/jurisdictions for valid codes or GET /v1/config for the full list."
+  }
+}
+```
+
+### Rate limit exceeded
+
+```json
+{
+  "error": {
+    "code": "RATE_LIMIT_EXCEEDED",
+    "message": "Rate limit exceeded",
+    "details": {
+      "retry_after_seconds": 45
+    },
+    "suggestion": "Retry after 45 seconds. Check X-RateLimit-Reset header for exact reset time."
+  }
+}
+```
+
+### Validation error
+
+```json
+{
+  "error": {
+    "code": "VALIDATION_ERROR",
+    "message": "body/entity_name: Required",
+    "suggestion": "Check the request body, query parameters, or path parameters against the API schema at GET /reference."
+  }
+}
+```

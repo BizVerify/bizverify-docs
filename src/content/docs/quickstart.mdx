@@ -1,0 +1,126 @@
+---
+title: Quickstart
+description: Get your API key and make your first business verification request in under 5 minutes.
+---
+
+import { Steps, Tabs, TabItem } from '@astrojs/starlight/components';
+
+<Steps>
+
+1. **Get an API key**
+
+   Send your email to get a one-time verification code:
+
+   ```bash
+   curl -X POST https://api.bizverify.co/v1/auth/request-access \
+     -H "Content-Type: application/json" \
+     -d '{"email": "you@company.com", "accept_terms": true}'
+   ```
+
+   Check your inbox for the 6-digit code, then exchange it for an API key:
+
+   ```bash
+   curl -X POST https://api.bizverify.co/v1/auth/verify-access \
+     -H "Content-Type: application/json" \
+     -d '{"email": "you@company.com", "code": "123456", "label": "my-app"}'
+   ```
+
+   Response:
+   ```json
+   {
+     "api_key": "bv_live_abc123...",
+     "key_id": "key_xyz",
+     "label": "my-app"
+   }
+   ```
+
+   :::caution
+   Store your API key securely. It is shown only once.
+   :::
+
+2. **Verify a business**
+
+   <Tabs syncKey="lang">
+     <TabItem label="cURL">
+     ```bash
+     curl -X POST https://api.bizverify.co/v1/verify \
+       -H "Content-Type: application/json" \
+       -H "X-API-Key: bv_live_abc123..." \
+       -d '{"entity_name": "Acme Corporation", "jurisdiction": "us-fl"}'
+     ```
+     </TabItem>
+     <TabItem label="Node.js">
+     ```ts
+     import { BizVerify } from '@bizverify/sdk';
+
+     const biz = new BizVerify({ apiKey: 'bv_live_abc123...' });
+     const result = await biz.verification.verify({
+       entity_name: 'Acme Corporation',
+       jurisdiction: 'us-fl',
+     });
+     ```
+     </TabItem>
+     <TabItem label="Python">
+     ```python
+     from bizverify import BizVerify
+
+     client = BizVerify(api_key="bv_live_abc123...")
+     result = client.verification.verify("Acme Corporation", "us-fl")
+     ```
+     </TabItem>
+   </Tabs>
+
+   If the result is cached, you get an immediate response with `status: "completed"`. Otherwise, you get `status: "pending"` with a `job_id`.
+
+3. **Poll for results (if async)**
+
+   If you received a `job_id`, poll until the job completes:
+
+   ```bash
+   curl https://api.bizverify.co/v1/verify/status/job_abc123 \
+     -H "X-API-Key: bv_live_abc123..."
+   ```
+
+   Response when complete:
+   ```json
+   {
+     "status": "completed",
+     "job_id": "job_abc123",
+     "entity_id": "ent_xyz",
+     "data": {
+       "entity_name": "ACME CORPORATION",
+       "entity_type": "corporation",
+       "status": "active",
+       "jurisdiction": "us-fl",
+       "formation_date": "2015-03-12",
+       "confidence": 95
+     }
+   }
+   ```
+
+   :::tip
+   Use [webhooks](/webhooks/) instead of polling to get notified when a job completes.
+   :::
+
+</Steps>
+
+## Credit costs
+
+| Operation | Credits |
+|-----------|---------|
+| Pre-check verification | 1 |
+| Full verification | 15 |
+| Full + force refresh | 25 |
+| Search (per jurisdiction) | 2 |
+| Entity history | 5 |
+| Entity lookup | Free |
+| Job status check | Free |
+
+Every response includes `X-Credits-Remaining` and `X-Credits-Charged` headers. See [Authentication](/authentication/) for details.
+
+## Next steps
+
+- [Authentication](/authentication/) — API keys, rate limits, credit tracking
+- [Error Codes](/errors/) — Handle errors gracefully
+- [MCP Setup](/mcp/setup/) — Use BizVerify from AI tools
+- [API Reference](https://api.bizverify.co/reference) — Full endpoint documentation

@@ -1,0 +1,44 @@
+---
+title: BizVerify Documentation
+description: Guides, tutorials, and SDK references for the BizVerify business entity verification API.
+template: splash
+hero:
+  title: BizVerify Documentation
+  tagline: Verify business entities across 14+ jurisdictions via REST API or AI-native MCP tools.
+  actions:
+    - text: Quickstart
+      link: /quickstart/
+      icon: right-arrow
+      variant: primary
+    - text: API Reference
+      link: https://api.bizverify.co/reference
+      variant: minimal
+      icon: external
+---
+
+import { CardGrid, LinkCard } from '@astrojs/starlight/components';
+
+## Choose your path
+
+<CardGrid>
+  <LinkCard
+    title="REST API"
+    description="Integrate BizVerify into your application with the REST API."
+    href="/quickstart/"
+  />
+  <LinkCard
+    title="MCP (AI Tools)"
+    description="Use BizVerify as an MCP tool in Claude, Cursor, VS Code, and more."
+    href="/mcp/setup/"
+  />
+  <LinkCard
+    title="Node.js SDK"
+    description="Install the npm package and start verifying in minutes."
+    href="/sdks/node/"
+  />
+  <LinkCard
+    title="Python SDK"
+    description="Async-ready Python client with full type support."
+    href="/sdks/python/"
+  />
+</CardGrid>

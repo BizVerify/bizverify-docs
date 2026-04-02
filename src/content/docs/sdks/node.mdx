@@ -1,0 +1,130 @@
+---
+title: Node.js SDK
+description: Install and use the BizVerify Node.js SDK to verify businesses, search entities, and manage your account.
+---
+
+## Installation
+
+```bash
+npm install @bizverify/sdk
+```
+
+Requires Node.js 18+. Zero runtime dependencies.
+
+## Quick start
+
+```ts
+import { BizVerify } from '@bizverify/sdk';
+
+const biz = new BizVerify({ apiKey: 'bv_live_...' });
+
+// Verify a business
+const result = await biz.verification.verify({
+  entity_name: 'Acme Corporation',
+  jurisdiction: 'us-fl',
+});
+console.log(result.status, result.data);
+```
+
+## Passwordless auth
+
+If you don't have an API key yet:
+
+```ts
+const biz = new BizVerify();
+
+// Step 1: Request a code
+await biz.auth.requestAccess({
+  email: 'you@company.com',
+  accept_terms: true,
+});
+
+// Step 2: Verify code — client auto-configures
+const { api_key } = await biz.auth.verifyAccess({
+  email: 'you@company.com',
+  code: '123456',
+  label: 'my-app',
+});
+```
+
+## Verify and wait
+
+For async verifications, `verifyAndWait` polls until complete:
+
+```ts
+const job = await biz.verification.verifyAndWait(
+  { entity_name: 'Acme Inc', jurisdiction: 'us-fl' },
+  {
+    timeoutMs: 120_000,
+    onStatusChange: (status) => console.log(status.status),
+  },
+);
+console.log(job.data);
+```
+
+## Search
+
+```ts
+// Single page
+const page = await biz.search.find({
+  entity_name: 'Acme',
+  jurisdiction: 'us-fl',
+  limit: 10,
+});
+
+// Auto-paginate
+for await (const entity of biz.search.findAll({ entity_name: 'Acme' })) {
+  console.log(entity.entity_name, entity.confidence);
+}
+```
+
+## Configuration
+
+```ts
+const biz = new BizVerify({
+  apiKey: 'bv_live_...',
+  baseUrl: 'https://api.bizverify.co',  // default
+  maxRetries: 2,                          // retries on 5xx
+  timeout: 30_000,                        // milliseconds
+});
+```
+
+## Credit tracking
+
+```ts
+const meta = biz.lastResponseMeta;
+console.log(meta?.creditsRemaining, meta?.creditsCharged);
+```
+
+## Error handling
+
+```ts
+import {
+  BizVerify,
+  AuthenticationError,
+  InsufficientCreditsError,
+  RateLimitError,
+  NotFoundError,
+  ValidationError,
+} from '@bizverify/sdk';
+
+try {
+  await biz.verification.verify({ entity_name: 'Test', jurisdiction: 'us-fl' });
+} catch (err) {
+  if (err instanceof InsufficientCreditsError) {
+    console.log('Need more credits');
+  } else if (err instanceof RateLimitError) {
+    console.log(`Retry after ${err.retryAfter}s`);
+  } else if (err instanceof AuthenticationError) {
+    console.log('Invalid API key');
+  } else if (err instanceof NotFoundError) {
+    console.log('Not found');
+  } else if (err instanceof ValidationError) {
+    console.log('Invalid request:', err.details);
+  }
+}
+```
+
+## Full reference
+
+See the [SDK README on GitHub](https://github.com/bizverify/bizverify-node) for the complete API.
