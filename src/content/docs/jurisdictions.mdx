@@ -1,0 +1,98 @@
+---
+title: Jurisdiction Coverage
+description: All supported jurisdictions with verification status.
+---
+
+import { Badge } from '@astrojs/starlight/components';
+
+BizVerify supports business entity verification across US and European registries. Coverage is expanding continuously.
+
+## Status key
+
+- <Badge text="Verified" variant="success" /> — Live and verified with E2E tests. Full accuracy.
+- <Badge text="Coming Soon" variant="note" /> — Implemented, in testing. Available soon.
+
+## United States (50 states)
+
+| Code | State | Status | Operations |
+|------|-------|--------|------------|
+| `us-ak` | Alaska | <Badge text="Coming Soon" variant="note" /> | Verify, Search |
+| `us-al` | Alabama | <Badge text="Coming Soon" variant="note" /> | Verify, Search |
+| `us-ar` | Arkansas | <Badge text="Coming Soon" variant="note" /> | Verify, Search |
+| `us-az` | Arizona | <Badge text="Coming Soon" variant="note" /> | Verify, Search |
+| `us-ca` | California | <Badge text="Coming Soon" variant="note" /> | Verify, Search |
+| `us-co` | Colorado | <Badge text="Verified" variant="success" /> | Verify, Search |
+| `us-ct` | Connecticut | <Badge text="Coming Soon" variant="note" /> | Verify, Search |
+| `us-de` | Delaware | <Badge text="Verified" variant="success" /> | Verify, Search |
+| `us-fl` | Florida | <Badge text="Verified" variant="success" /> | Verify, Search |
+| `us-ga` | Georgia | <Badge text="Coming Soon" variant="note" /> | Verify, Search |
+| `us-hi` | Hawaii | <Badge text="Coming Soon" variant="note" /> | Verify, Search |
+| `us-ia` | Iowa | <Badge text="Coming Soon" variant="note" /> | Verify, Search |
+| `us-id` | Idaho | <Badge text="Verified" variant="success" /> | Verify, Search |
+| `us-il` | Illinois | <Badge text="Coming Soon" variant="note" /> | Verify, Search |
+| `us-in` | Indiana | <Badge text="Coming Soon" variant="note" /> | Verify, Search |
+| `us-ks` | Kansas | <Badge text="Coming Soon" variant="note" /> | Verify, Search |
+| `us-ky` | Kentucky | <Badge text="Verified" variant="success" /> | Verify, Search |
+| `us-la` | Louisiana | <Badge text="Coming Soon" variant="note" /> | Verify, Search |
+| `us-ma` | Massachusetts | <Badge text="Coming Soon" variant="note" /> | Verify, Search |
+| `us-md` | Maryland | <Badge text="Coming Soon" variant="note" /> | Verify, Search |
+| `us-me` | Maine | <Badge text="Verified" variant="success" /> | Verify, Search |
+| `us-mi` | Michigan | <Badge text="Coming Soon" variant="note" /> | Verify, Search |
+| `us-mn` | Minnesota | <Badge text="Coming Soon" variant="note" /> | Verify, Search |
+| `us-mo` | Missouri | <Badge text="Verified" variant="success" /> | Verify, Search |
+| `us-ms` | Mississippi | <Badge text="Coming Soon" variant="note" /> | Verify, Search |
+| `us-mt` | Montana | <Badge text="Coming Soon" variant="note" /> | Verify, Search |
+| `us-nc` | North Carolina | <Badge text="Coming Soon" variant="note" /> | Verify, Search |
+| `us-nd` | North Dakota | <Badge text="Verified" variant="success" /> | Verify, Search |
+| `us-ne` | Nebraska | <Badge text="Coming Soon" variant="note" /> | Verify, Search |
+| `us-nh` | New Hampshire | <Badge text="Coming Soon" variant="note" /> | Verify, Search |
+| `us-nj` | New Jersey | <Badge text="Verified" variant="success" /> | Verify, Search |
+| `us-nm` | New Mexico | <Badge text="Coming Soon" variant="note" /> | Verify, Search |
+| `us-nv` | Nevada | <Badge text="Coming Soon" variant="note" /> | Verify, Search |
+| `us-ny` | New York | <Badge text="Coming Soon" variant="note" /> | Verify, Search |
+| `us-oh` | Ohio | <Badge text="Coming Soon" variant="note" /> | Verify, Search |
+| `us-ok` | Oklahoma | <Badge text="Coming Soon" variant="note" /> | Verify, Search |
+| `us-or` | Oregon | <Badge text="Verified" variant="success" /> | Verify, Search |
+| `us-pa` | Pennsylvania | <Badge text="Coming Soon" variant="note" /> | Verify, Search |
+| `us-ri` | Rhode Island | <Badge text="Verified" variant="success" /> | Verify, Search |
+| `us-sc` | South Carolina | <Badge text="Verified" variant="success" /> | Verify, Search |
+| `us-sd` | South Dakota | <Badge text="Coming Soon" variant="note" /> | Verify, Search |
+| `us-tn` | Tennessee | <Badge text="Coming Soon" variant="note" /> | Verify, Search |
+| `us-tx` | Texas | <Badge text="Verified" variant="success" /> | Verify, Search |
+| `us-ut` | Utah | <Badge text="Coming Soon" variant="note" /> | Verify, Search |
+| `us-va` | Virginia | <Badge text="Coming Soon" variant="note" /> | Verify, Search |
+| `us-vt` | Vermont | <Badge text="Coming Soon" variant="note" /> | Verify, Search |
+| `us-wa` | Washington | <Badge text="Coming Soon" variant="note" /> | Verify, Search |
+| `us-wi` | Wisconsin | <Badge text="Coming Soon" variant="note" /> | Verify, Search |
+| `us-wv` | West Virginia | <Badge text="Coming Soon" variant="note" /> | Verify, Search |
+| `us-wy` | Wyoming | <Badge text="Coming Soon" variant="note" /> | Verify, Search |
+
+## International (11 countries)
+
+| Code | Country | Status | Operations |
+|------|---------|--------|------------|
+| `be` | Belgium | <Badge text="Coming Soon" variant="note" /> | Verify, Search |
+| `dk` | Denmark | <Badge text="Coming Soon" variant="note" /> | Verify, Search |
+| `ee` | Estonia | <Badge text="Coming Soon" variant="note" /> | Verify, Search |
+| `fi` | Finland | <Badge text="Coming Soon" variant="note" /> | Verify, Search |
+| `fr` | France | <Badge text="Coming Soon" variant="note" /> | Verify, Search |
+| `gb` | United Kingdom | <Badge text="Verified" variant="success" /> | Verify, Search |
+| `ie` | Ireland | <Badge text="Coming Soon" variant="note" /> | Verify, Search |
+| `mt` | Malta | <Badge text="Coming Soon" variant="note" /> | Verify, Search |
+| `nl` | Netherlands | <Badge text="Coming Soon" variant="note" /> | Verify, Search |
+| `se` | Sweden | <Badge text="Coming Soon" variant="note" /> | Verify, Search |
+| `si` | Slovenia | <Badge text="Coming Soon" variant="note" /> | Verify, Search |
+
+## Programmatic access
+
+Get the current jurisdiction list and status via the API:
+
+```bash
+# All jurisdictions with active status
+curl https://api.bizverify.co/v1/jurisdictions
+
+# Full config including jurisdiction details
+curl https://api.bizverify.co/v1/config
+```
+
+These endpoints are unauthenticated — no API key required.
