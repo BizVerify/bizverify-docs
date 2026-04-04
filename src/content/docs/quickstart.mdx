@@ -106,21 +106,15 @@ import { Steps, Tabs, TabItem } from '@astrojs/starlight/components';
 
 ## Credit costs
 
-| Operation | Credits |
-|-----------|---------|
-| Pre-check verification | 1 |
-| Full verification | 15 |
-| Full + force refresh | 25 |
-| Search (per jurisdiction) | 2 |
-| Entity history | 5 |
-| Entity lookup | Free |
-| Job status check | Free |
-
-Every response includes `X-Credits-Remaining` and `X-Credits-Charged` headers. See [Authentication](/authentication/) for details.
+Operations cost between 1-25 credits. Entity lookups and job status checks are free. See [Credits & Billing](/guides/billing/) for the full pricing table.
 
 ## Next steps
 
-- [Authentication](/authentication/) — API keys, rate limits, credit tracking
+- [Authentication](/authentication/) — API keys, key management
+- [Credits & Billing](/guides/billing/) — Credit costs and purchasing
+- [Async Jobs](/guides/async-jobs/) — Polling, webhooks, and the job lifecycle
 - [Error Codes](/errors/) — Handle errors gracefully
+- [Jurisdiction Coverage](/jurisdictions/) — All supported jurisdictions
 - [MCP Setup](/mcp/setup/) — Use BizVerify from AI tools
+- [OpenAPI Spec](https://api.bizverify.co/v1/openapi.json) — Machine-readable API schema
 - [API Reference](https://api.bizverify.co/reference) — Full endpoint documentation
