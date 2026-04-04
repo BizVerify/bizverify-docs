@@ -1,0 +1,53 @@
+---
+title: Rate Limits
+description: Default rate limits, response headers, and how to handle 429 errors.
+---
+
+## Default limits
+
+| Context | Limit | Scope |
+|---------|-------|-------|
+| REST API (authenticated) | 60 requests/minute | Per API key |
+| MCP (unauthenticated) | 20 requests/minute | Per IP address |
+
+Your per-key rate limit is visible in the `GET /v1/account` response under `api_keys[].rate_limit`.
+
+## Rate limit headers
+
+Every API key-authenticated response includes rate limit headers:
+
+| Header | Description |
+|--------|-------------|
+| `X-RateLimit-Limit` | Maximum requests allowed in the current window |
+| `X-RateLimit-Remaining` | Requests remaining in the current window |
+| `X-RateLimit-Reset` | Unix timestamp (seconds) when the window resets |
+
+## When you exceed the limit
+
+You'll receive a `429 Too Many Requests` response:
+
+```json
+{
+  "error": {
+    "code": "RATE_LIMIT_EXCEEDED",
+    "message": "Rate limit exceeded",
+    "details": {
+      "retry_after_seconds": 45
+    },
+    "suggestion": "Retry after 45 seconds. Check X-RateLimit-Reset header for exact reset time."
+  }
+}
+```
+
+See the full error format in the [Error Codes](/errors/) reference.
+
+## Best practices
+
+- **Check headers proactively.** Monitor `X-RateLimit-Remaining` and slow down before hitting the limit rather than reacting to 429 errors.
+- **Use exponential backoff.** When you receive a 429, wait for `retry_after_seconds` before retrying. If you get repeated 429s, increase the wait time exponentially.
+- **Batch where possible.** A single search across multiple jurisdictions is one request, not one per jurisdiction.
+- **Cache results.** Entity lookups (`GET /v1/entity/:id`) are free and don't count against your rate limit. Use them to retrieve previously verified entities instead of re-verifying.
+
+## Need higher limits?
+
+If your use case requires more than 60 requests/minute, contact us at [support@bizverify.co](mailto:support@bizverify.co) to discuss custom rate limits.
