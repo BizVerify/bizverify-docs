@@ -1,0 +1,74 @@
+---
+title: Changelog
+description: A log of API changes, new features, and deprecations.
+---
+
+Notable changes to the BizVerify API. For the machine-readable API schema, see the [OpenAPI spec](https://api.bizverify.co/v1/openapi.json).
+
+---
+
+## 2026-04-02
+
+### Added
+- Documentation site launched at [docs.bizverify.co](https://docs.bizverify.co)
+- Node.js SDK (`@bizverify/sdk`) and Python SDK (`bizverify`) published
+
+## 2026-03-28
+
+### Added
+- MCP server at `POST /mcp` — connect BizVerify to Claude, Cursor, VS Code, and other AI tools
+- OAuth 2.1 + PKCE authentication for MCP clients
+- Dynamic Client Registration (RFC 7591)
+
+## 2026-03-20
+
+### Added
+- Agent-first API refactor — unified passwordless auth flow (`/v1/auth/request-access`, `/v1/auth/verify-access`)
+- Standardized error responses with `code`, `message`, `details`, `suggestion`
+- Credit headers (`X-Credits-Remaining`, `X-Credits-Charged`) on all authenticated responses
+- GDPR data export endpoint (`GET /v1/account/data-export`)
+
+### Changed
+- API docs moved from `/docs` to `/reference`
+
+## 2026-03-10
+
+### Added
+- Prometheus metrics endpoint for monitoring
+- Audit log for admin actions
+- Automated alerting when a jurisdiction's availability changes
+- Better Stack log shipping
+
+## 2026-03-01
+
+### Added
+- Admin dashboard at `/internal/dashboard/`
+- User management (search, credit adjustment, disable/enable)
+- Job management (list, retry, refund)
+
+## 2026-02-28
+
+### Added
+- Webhook callbacks — receive notifications when jobs complete, fail, or are refunded
+- Search pagination (`limit`/`offset` on `POST /v1/search`)
+- Account management — email update, password change, account deletion (GDPR)
+- Jurisdiction gating — non-active jurisdictions rejected before credit deduction
+
+## 2026-02-15
+
+### Added
+- Email verification and password reset flows
+- OpenAPI 3.1 spec generation with Scalar interactive docs
+- CORS configuration
+- Auto-refund on job failure
+- CI/CD pipeline
+
+## 2026-02-01
+
+### Added
+- Initial API launch with 14 verified jurisdictions
+- Credit-based billing with Stripe checkout
+- Verification coverage across 50 US states and 11 international jurisdictions
+- Live data retrieval from official sources
+- Globally distributed request infrastructure
+- Sentry error monitoring
