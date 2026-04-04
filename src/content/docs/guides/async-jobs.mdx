@@ -1,0 +1,113 @@
+---
+title: Async Jobs
+description: How async verification and search jobs work — polling, webhooks, and the job lifecycle.
+---
+
+import { Tabs, TabItem } from '@astrojs/starlight/components';
+
+## When jobs are async
+
+Both `POST /v1/verify` and `POST /v1/search` can return results in two ways:
+
+- **Immediate** (`200`) — the entity is already cached from a previous verification. You get the full result in the response.
+- **Async** (`202 Accepted`) — a background job is created to retrieve the record from the official source. You get a `job_id` to track progress.
+
+Most first-time verifications are async. Subsequent lookups of the same entity are usually immediate.
+
+## Job lifecycle
+
+```
+pending → processing → completed
+                     → failed (credits auto-refunded)
+```
+
+1. **Pending** — job is queued, waiting to be picked up by a worker
+2. **Processing** — the latest record is being retrieved from the official source
+3. **Completed** — data retrieved successfully, entity cached
+4. **Failed** — all retry attempts exhausted (3 attempts total). Credits are automatically refunded. See [Credits & Billing](/guides/billing/) for refund details.
+
+## Consuming results
+
+### Option 1: Polling
+
+Poll the job status endpoint until the job completes:
+
+```bash
+curl https://api.bizverify.co/v1/verify/status/{job_id} \
+  -H "X-API-Key: bv_live_..."
+```
+
+Response while pending/processing:
+```json
+{
+  "status": "processing",
+  "job_id": "job_abc123"
+}
+```
+
+Response when complete:
+```json
+{
+  "status": "completed",
+  "job_id": "job_abc123",
+  "entity_id": "ent_xyz",
+  "data": {
+    "entity_name": "ACME CORPORATION",
+    "entity_type": "corporation",
+    "status": "active",
+    "jurisdiction": "us-fl",
+    "formation_date": "2015-03-12",
+    "confidence": 95
+  }
+}
+```
+
+:::tip
+Poll every 2-3 seconds. Most jobs complete within 10-30 seconds.
+:::
+
+### Option 2: Webhooks
+
+Instead of polling, provide a `webhook_url` when creating the request. BizVerify will POST to your URL when the job completes or fails. See the [Webhooks guide](/webhooks/) for payload format and best practices.
+
+### Option 3: SDK helpers
+
+The SDKs provide convenience methods that handle polling automatically:
+
+<Tabs syncKey="lang">
+  <TabItem label="Node.js">
+  ```ts
+  // Polls automatically until complete or timeout
+  const result = await biz.verification.verifyAndWait(
+    { entity_name: 'Acme Inc', jurisdiction: 'us-fl' },
+    { timeoutMs: 120_000 },
+  );
+  console.log(result.data);
+  ```
+  </TabItem>
+  <TabItem label="Python">
+  ```python
+  # Polls automatically until complete or timeout
+  result = client.verification.verify_and_wait(
+      "Acme Inc", "us-fl",
+      timeout=60.0,
+  )
+  print(result.data)
+  ```
+  </TabItem>
+  <TabItem label="Go">
+  ```go
+  // Polls automatically until complete or timeout
+  job, err := client.Verification.VerifyAndWait(ctx, bv.VerifyParams{
+      EntityName:   "Acme Inc",
+      Jurisdiction: "us-fl",
+  }, &bv.PollOptions{Timeout: 120 * time.Second})
+  ```
+  </TabItem>
+</Tabs>
+
+## Search jobs
+
+`POST /v1/search` works the same way. When searching across multiple jurisdictions, each jurisdiction creates a separate job. The response aggregates results as they complete.
+
+If some jurisdictions fail while others succeed, you are only charged for the successful ones. The response includes a `jurisdictions_failed` array so you know which ones had issues.
