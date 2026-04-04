@@ -75,48 +75,8 @@ You cannot revoke the API key you're currently using to authenticate. Use a diff
 
 ## Credits
 
-Every authenticated response includes credit headers:
-
-| Header | Description |
-|--------|-------------|
-| `X-Credits-Remaining` | Your credit balance after this request |
-| `X-Credits-Charged` | Credits consumed by this request (0 for free endpoints) |
-
-### Check your balance
-
-```bash
-curl https://api.bizverify.co/v1/account \
-  -H "X-API-Key: bv_live_abc123..."
-```
-
-The `credit_balance` field shows your current balance.
-
-### Purchase credits
-
-```bash
-curl -X POST https://api.bizverify.co/v1/billing/purchase \
-  -H "Content-Type: application/json" \
-  -H "X-API-Key: bv_live_abc123..." \
-  -d '{"package_id": "starter"}'
-```
-
-Returns a Stripe checkout URL. Available packages:
-
-| Package | Credits | Price | Per credit |
-|---------|---------|-------|------------|
-| Starter | 100 | $8 | $0.08 |
-| Pro | 500 | $35 | $0.07 |
-| Business | 2,000 | $120 | $0.06 |
-| Enterprise | 10,000 | $500 | $0.05 |
+See [Credits & Billing](/guides/billing/) for credit costs, balance tracking, and purchasing.
 
 ## Rate limits
 
-API key requests are rate-limited. Every response includes:
-
-| Header | Description |
-|--------|-------------|
-| `X-RateLimit-Limit` | Maximum requests allowed per window |
-| `X-RateLimit-Remaining` | Requests remaining in current window |
-| `X-RateLimit-Reset` | Unix timestamp when the window resets |
-
-If you exceed the limit, you'll receive a `429` response with a `RATE_LIMIT_EXCEEDED` error. The `details.retry_after_seconds` field tells you how long to wait. See [Error Codes](/errors/) for details.
+API key requests are rate-limited to **60 requests/minute** by default. See [Rate Limits](/guides/rate-limits/) for headers, error handling, and best practices.
