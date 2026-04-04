@@ -1,0 +1,35 @@
+---
+title: API Versioning
+description: BizVerify's API versioning policy and backward compatibility commitment.
+---
+
+## Current version
+
+The BizVerify API is currently on **v1**. All endpoints are prefixed with `/v1/`.
+
+## Backward compatibility
+
+Within a major version, we commit to **no breaking changes**. This means:
+
+- Existing fields in responses will not be removed or change type
+- Existing endpoints will not be removed
+- Required request parameters will not be added to existing endpoints
+- Error codes will not change meaning
+
+We may add new fields to responses, new optional parameters, new endpoints, and new error codes. These are backward-compatible changes — your existing integrations will continue to work.
+
+## How we communicate changes
+
+- **New features and additions** are announced in the [Changelog](/changelog/)
+- **Deprecations** are announced at least 90 days before removal, marked in the changelog and API responses
+- **Breaking changes** only happen in a new major version (e.g., v2), with a migration guide and overlap period where both versions are available
+
+## OpenAPI spec
+
+The machine-readable API specification is always available at:
+
+```
+https://api.bizverify.co/v1/openapi.json
+```
+
+Use this to auto-generate clients, validate requests, or stay up to date with the latest schema. The interactive API reference is at [api.bizverify.co/reference](https://api.bizverify.co/reference).
