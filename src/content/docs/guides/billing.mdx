@@ -1,0 +1,108 @@
+---
+title: Credits & Billing
+description: How credits work, what operations cost, and how to purchase more.
+---
+
+import { Tabs, TabItem } from '@astrojs/starlight/components';
+
+## How credits work
+
+BizVerify uses a prepaid credit system. Credits are deducted when you make verification or search requests. If a job fails after all retry attempts, credits are automatically refunded.
+
+New accounts start with **50 free credits**.
+
+## Operation costs
+
+| Operation | Credits | Notes |
+|-----------|---------|-------|
+| Pre-check verification | 1 | Quick lookup against cached data |
+| Full verification | 15 | Live record from the official source |
+| Full verification (force refresh) | 25 | Bypasses cache, always returns the latest record |
+| Search (per jurisdiction) | 2 | Charged per jurisdiction searched |
+| Entity history | 5 | Historical verification snapshots |
+| Entity lookup | Free | Retrieve cached entity by ID |
+| Job status check | Free | Poll async job status |
+
+## Credit headers
+
+Every authenticated API response includes credit information in headers:
+
+| Header | Description |
+|--------|-------------|
+| `X-Credits-Remaining` | Your credit balance after this request |
+| `X-Credits-Charged` | Credits consumed by this request (0 for free endpoints) |
+
+These headers are included on both success and error responses, so you can always track your balance.
+
+## Checking your balance
+
+### Via API
+
+```bash
+curl https://api.bizverify.co/v1/account \
+  -H "X-API-Key: bv_live_..."
+```
+
+The `credit_balance` field in the response shows your current balance.
+
+### Via billing endpoint
+
+For more detail including transaction history:
+
+```bash
+curl https://api.bizverify.co/v1/billing \
+  -H "X-API-Key: bv_live_..."
+```
+
+Returns your balance, available packages, and paginated transaction history. Use `?limit=10&offset=0` query parameters to paginate transactions.
+
+### Via SDK
+
+<Tabs syncKey="lang">
+  <TabItem label="Node.js">
+  ```ts
+  const meta = biz.lastResponseMeta;
+  console.log(meta?.creditsRemaining); // balance after last request
+  ```
+  </TabItem>
+  <TabItem label="Python">
+  ```python
+  # Credits are tracked automatically after each request
+  print(client.last_response_meta.credits_remaining)
+  ```
+  </TabItem>
+</Tabs>
+
+## Purchasing credits
+
+:::note
+Your email must be verified before you can purchase credits. The verification happens automatically during the passwordless signup flow.
+:::
+
+```bash
+curl -X POST https://api.bizverify.co/v1/billing/purchase \
+  -H "Content-Type: application/json" \
+  -H "X-API-Key: bv_live_..." \
+  -d '{"package_id": "starter"}'
+```
+
+This returns a Stripe checkout URL. Complete the payment there and credits are added to your account immediately.
+
+### Available packages
+
+| Package | Credits | Price | Per credit |
+|---------|---------|-------|------------|
+| Starter | 100 | $8 | $0.08 |
+| Pro | 500 | $35 | $0.07 |
+| Business | 2,000 | $120 | $0.06 |
+| Enterprise | 10,000 | $500 | $0.05 |
+
+## Refunds
+
+Credits are automatically refunded when a verification or search job fails after all retry attempts. You don't need to take any action — the refund happens immediately and your balance is updated.
+
+The `X-Credits-Remaining` header on subsequent requests will reflect the refunded amount.
+
+In rare cases, refunds can also be issued manually by BizVerify support. Contact [support@bizverify.co](mailto:support@bizverify.co) if you believe a charge was incorrect.
+
+For more on how async jobs work and when failures occur, see [Async Jobs](/guides/async-jobs/).
