@@ -24,8 +24,17 @@ export default defineConfig({
 				{ label: 'Welcome', slug: '' },
 				{ label: 'Quickstart', slug: 'quickstart' },
 				{ label: 'Authentication', slug: 'authentication' },
-				{ label: 'Error Codes', slug: 'errors' },
-				{ label: 'Webhooks', slug: 'webhooks' },
+				{
+					label: 'Guides',
+					items: [
+						{ label: 'Async Jobs', slug: 'guides/async-jobs' },
+						{ label: 'Credits & Billing', slug: 'guides/billing' },
+						{ label: 'Rate Limits', slug: 'guides/rate-limits' },
+						{ label: 'Webhooks', slug: 'webhooks' },
+						{ label: 'Error Codes', slug: 'errors' },
+						{ label: 'API Versioning', slug: 'guides/versioning' },
+					],
+				},
 				{
 					label: 'MCP',
 					items: [
@@ -39,6 +48,13 @@ export default defineConfig({
 						{ label: 'Python', slug: 'sdks/python' },
 						{ label: 'Go', slug: 'sdks/go' },
 					],
+				},
+				{ label: 'Jurisdiction Coverage', slug: 'jurisdictions' },
+				{ label: 'Changelog', slug: 'changelog' },
+				{
+					label: 'OpenAPI Spec ↗',
+					link: 'https://api.bizverify.co/v1/openapi.json',
+					attrs: { target: '_blank' },
 				},
 				{
 					label: 'API Reference ↗',
