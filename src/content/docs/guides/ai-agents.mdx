@@ -1,0 +1,207 @@
+---
+title: AI Agents
+description: Integrate BizVerify with LLM agents — OpenAI function calling, Anthropic tool use, LangChain, CrewAI, n8n, and MCP.
+---
+
+import { Tabs, TabItem } from '@astrojs/starlight/components';
+
+BizVerify provides pre-built tool definitions for major LLM platforms, plus native MCP support. Choose the integration that matches your stack.
+
+## MCP (recommended)
+
+If your client supports [Model Context Protocol](https://modelcontextprotocol.io/), use BizVerify's built-in MCP server. This is the recommended approach for Claude Desktop, Cursor, Windsurf, and other MCP-compatible tools.
+
+See the [MCP Setup guide](/mcp/setup) for configuration instructions.
+
+## OpenAI Function Calling
+
+BizVerify serves a ready-to-use `tools` array at a public endpoint. Fetch it and pass it directly to the OpenAI Chat Completions API.
+
+<Tabs>
+  <TabItem label="Node.js">
+```javascript
+import OpenAI from 'openai';
+import BizVerify from '@bizverify/sdk';
+
+const openai = new OpenAI();
+const bv = new BizVerify({ apiKey: 'bv_live_...' });
+
+// Fetch tool definitions
+const tools = await fetch('https://api.bizverify.co/tools/openai.json').then(r => r.json());
+
+const response = await openai.chat.completions.create({
+  model: 'gpt-4o',
+  messages: [{ role: 'user', content: 'Is Acme Inc registered in Florida?' }],
+  tools,
+});
+
+// Handle tool calls
+for (const call of response.choices[0].message.tool_calls ?? []) {
+  const args = JSON.parse(call.function.arguments);
+  if (call.function.name === 'verify_business') {
+    const result = await bv.verification.verify(args.entity_name, args.jurisdiction);
+    // Send result back to the model...
+  }
+}
+```
+  </TabItem>
+  <TabItem label="Python">
+```python
+import httpx
+from openai import OpenAI
+from bizverify import BizVerify
+
+client = OpenAI()
+bv = BizVerify(api_key="bv_live_...")
+
+# Fetch tool definitions
+tools = httpx.get("https://api.bizverify.co/tools/openai.json").json()
+
+response = client.chat.completions.create(
+    model="gpt-4o",
+    messages=[{"role": "user", "content": "Is Acme Inc registered in Florida?"}],
+    tools=tools,
+)
+
+# Handle tool calls in response.choices[0].message.tool_calls
+```
+  </TabItem>
+</Tabs>
+
+**Endpoint:** `GET https://api.bizverify.co/tools/openai.json`
+
+The tool definitions tell the model what's available. Your code handles execution using the [Node.js](/sdks/node), [Python](/sdks/python), or [Go](/sdks/go) SDK.
+
+## Anthropic Tool Use
+
+Same pattern, different format:
+
+<Tabs>
+  <TabItem label="Node.js">
+```javascript
+import Anthropic from '@anthropic-ai/sdk';
+
+const anthropic = new Anthropic();
+const tools = await fetch('https://api.bizverify.co/tools/anthropic.json').then(r => r.json());
+
+const response = await anthropic.messages.create({
+  model: 'claude-sonnet-4-20250514',
+  max_tokens: 1024,
+  messages: [{ role: 'user', content: 'Is Acme Inc registered in Florida?' }],
+  tools,
+});
+```
+  </TabItem>
+  <TabItem label="Python">
+```python
+import httpx
+import anthropic
+
+client = anthropic.Anthropic()
+tools = httpx.get("https://api.bizverify.co/tools/anthropic.json").json()
+
+response = client.messages.create(
+    model="claude-sonnet-4-20250514",
+    max_tokens=1024,
+    messages=[{"role": "user", "content": "Is Acme Inc registered in Florida?"}],
+    tools=tools,
+)
+```
+  </TabItem>
+</Tabs>
+
+**Endpoint:** `GET https://api.bizverify.co/tools/anthropic.json`
+
+## LangChain
+
+The `bizverify-agents` package provides LangChain tools with built-in execution — no manual tool call routing needed.
+
+```bash
+pip install bizverify-agents[langchain]
+```
+
+```python
+from langchain_openai import ChatOpenAI
+from langgraph.prebuilt import create_react_agent
+from bizverify_agents.langchain import BizVerifyTools
+
+tools = BizVerifyTools(api_key="bv_live_...").get_tools()
+agent = create_react_agent(ChatOpenAI(model="gpt-4o"), tools)
+
+result = agent.invoke({
+    "messages": [{"role": "user", "content": "Is Acme Inc registered in Florida?"}]
+})
+```
+
+Or use the `BIZVERIFY_API_KEY` environment variable:
+
+```bash
+export BIZVERIFY_API_KEY=bv_live_...
+```
+
+```python
+tools = BizVerifyTools().get_tools()  # reads from env
+```
+
+## CrewAI
+
+```bash
+pip install bizverify-agents[crewai]
+```
+
+```python
+from crewai import Agent, Task, Crew
+from bizverify_agents.crewai import BizVerifyTools
+
+tools = BizVerifyTools(api_key="bv_live_...").get_tools()
+
+analyst = Agent(
+    role="Business Analyst",
+    goal="Verify business registration status",
+    tools=tools,
+)
+
+task = Task(
+    description="Check if Acme Inc is registered in Florida",
+    agent=analyst,
+    expected_output="Registration status and details",
+)
+
+crew = Crew(agents=[analyst], tasks=[task])
+result = crew.kickoff()
+```
+
+## n8n
+
+Install the BizVerify node via n8n's Community Nodes:
+
+1. Go to **Settings > Community Nodes**
+2. Enter `n8n-nodes-bizverify` and click **Install**
+3. Add your API key in **Credentials > BizVerify API**
+
+The node provides a single **Operation** dropdown with all BizVerify operations (Verify Business, Search Entities, Get Entity, etc.). Fields appear dynamically based on the selected operation.
+
+## Available Tools
+
+All integrations expose the same 9 tools:
+
+| Tool | Auth Required | Credits | Description |
+|------|:---:|---------|-------------|
+| `get_config` | No | Free | Service configuration and jurisdictions |
+| `list_jurisdictions` | No | Free | Supported jurisdictions with active status |
+| `verify_business` | Yes | 1-25 | Verify a business entity |
+| `search_entities` | Yes | 2/jurisdiction | Search entities by name |
+| `check_job_status` | Yes | Free | Check async job status |
+| `get_entity` | Yes | Free | Get cached entity details |
+| `get_entity_history` | Yes | 1 | Get verification history |
+| `get_account` | Yes | Free | View account info and credits |
+| `purchase_credits` | Yes | N/A | Purchase credits via Stripe |
+
+## Authentication
+
+All tool integrations use **API key** authentication. Get a key at [bizverify.co](https://bizverify.co) — 50 free credits on signup.
+
+- **OpenAI / Anthropic:** You handle auth in your tool execution code using a BizVerify SDK
+- **LangChain / CrewAI:** Pass `api_key=` or set `BIZVERIFY_API_KEY` env var
+- **n8n:** Configure in the BizVerify API credential
+- **MCP:** Uses OAuth — see [MCP Setup](/mcp/setup)

@@ -31,6 +31,7 @@ export default defineConfig({
 						{ label: 'Credits & Billing', slug: 'guides/billing' },
 						{ label: 'Rate Limits', slug: 'guides/rate-limits' },
 						{ label: 'Webhooks', slug: 'webhooks' },
+						{ label: 'AI Agents', slug: 'guides/ai-agents' },
 						{ label: 'Error Codes', slug: 'errors' },
 						{ label: 'API Versioning', slug: 'guides/versioning' },
 					],
