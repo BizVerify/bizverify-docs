@@ -95,14 +95,49 @@ Sent when an admin manually refunds credits for a job.
 | Method | `POST` |
 | Content-Type | `application/json` |
 | User-Agent | `BizVerify-Webhook/1.0` |
+| Signature | `X-BizVerify-Signature` header (HMAC-SHA256) |
 | Timeout | 10 seconds per attempt |
 | Retries | 3 retries (4 total attempts) |
 | Backoff | Exponential (1s, 2s, 4s) |
 | Success | Any `2xx` HTTP response |
 
+## Verifying signatures
+
+Every webhook delivery includes an `X-BizVerify-Signature` header containing an HMAC-SHA256 signature of the request body. Use this to verify that the request came from BizVerify and hasn't been tampered with.
+
+The header format is `sha256=<hex-encoded-signature>`.
+
+```javascript
+import { createHmac, timingSafeEqual } from 'node:crypto';
+
+function verifyWebhookSignature(body, signature, secret) {
+  const expected = 'sha256=' + createHmac('sha256', secret)
+    .update(body)
+    .digest('hex');
+  return timingSafeEqual(Buffer.from(signature), Buffer.from(expected));
+}
+
+// In your webhook handler:
+app.post('/webhooks/bizverify', (req, res) => {
+  const signature = req.headers['x-bizverify-signature'];
+  if (!signature || !verifyWebhookSignature(req.rawBody, signature, process.env.WEBHOOK_SECRET)) {
+    return res.status(401).send('Invalid signature');
+  }
+
+  // Process the webhook payload
+  const event = req.body;
+  console.log(`Received ${event.event} for job ${event.job_id}`);
+  res.status(200).send('OK');
+});
+```
+
+:::tip
+Your webhook secret is available in your BizVerify dashboard. Use `timingSafeEqual` (not `===`) to prevent timing attacks.
+:::
+
 ## Best practices
 
 - **Respond quickly.** Return a `200` status immediately and process the payload asynchronously. If your endpoint takes longer than 10 seconds, the delivery will be marked as failed and retried.
 - **Handle duplicates.** In rare cases (e.g., network issues), you may receive the same event more than once. Use `job_id` as an idempotency key.
-- **Verify the source.** Webhook requests come from BizVerify's servers. You can verify the `User-Agent: BizVerify-Webhook/1.0` header as a basic check.
+- **Verify the signature.** Always verify the `X-BizVerify-Signature` header to ensure the request came from BizVerify. See [Verifying signatures](#verifying-signatures) above.
 - **Use HTTPS.** Always use an `https://` URL for your webhook endpoint.
