@@ -83,7 +83,7 @@ Your email must be verified before you can purchase credits. The verification ha
 curl -X POST https://api.bizverify.co/v1/billing/purchase \
   -H "Content-Type: application/json" \
   -H "X-API-Key: bv_live_..." \
-  -d '{"package_id": "starter"}'
+  -d '{"package_id": "credits_100"}'
 ```
 
 This returns a Stripe checkout URL. Complete the payment there and credits are added to your account immediately.
