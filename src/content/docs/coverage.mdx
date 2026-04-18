@@ -1,0 +1,15 @@
+---
+title: Coverage
+description: Every supported jurisdiction and which verification tiers are available. Searchable and filterable. Sourced from /v1/config.
+---
+
+import CoverageTable from '../../components/CoverageTable.astro';
+
+This is the live list of every active BizVerify jurisdiction and the tier(s) available for each. Data is fetched directly from [`/v1/config`](https://api.bizverify.co/v1/config) at page load — it reflects the current state of the platform.
+
+- **Quick check** is available in every active jurisdiction.
+- **Deep verification** availability varies. Where deep isn't listed, [requesting deep returns a quick result with a reason](/concepts/tiers/#what-happens-if-i-ask-for-deep-in-a-quick-only-jurisdiction).
+
+<CoverageTable />
+
+Looking for a jurisdiction that isn't listed? Email [support@bizverify.co](mailto:support@bizverify.co) — we ship new jurisdictions regularly.

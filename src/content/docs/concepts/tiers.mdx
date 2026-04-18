@@ -1,0 +1,76 @@
+---
+title: Verification tiers
+description: When to use Quick check vs Deep verification — capability, cost, and availability.
+---
+
+import { Tabs, TabItem } from '@astrojs/starlight/components';
+
+BizVerify offers two verification tiers. They are parallel products, not different quality levels — pick the one that matches the question you're asking.
+
+## Quick check
+
+**1 credit. Available in every active jurisdiction.**
+
+Answers the core question: **does this business exist, and is it currently active?**
+
+Returns:
+- `exists`
+- `status` (active, inactive, dissolved, suspended, revoked, etc.)
+- `good_standing`
+- `entity_name` (canonical / registered form)
+- `jurisdiction`
+
+Use quick check when you need to confirm a counterparty is real and operational — onboarding forms, invoice validation, lead qualification, real-time flows where sub-second latency matters.
+
+## Deep verification
+
+**15 credits. Available in a subset of jurisdictions.**
+
+Returns everything from quick check, **plus**:
+- `entity_type` (LLC, corporation, LP, etc.)
+- `formation_date`
+- `jurisdiction_id` (the registry identifier)
+- `registered_agent`
+- `officers`
+- `principal_address`
+- `filing_history_summary`
+
+Use deep verification when you need the full entity record — KYB/compliance workflows, contract counterparty review, customer due diligence, anything that needs the registered agent or the officer list.
+
+Add `force_refresh: true` (25 credits) to bypass the cache and get the most current result.
+
+## What happens if I ask for deep in a quick-only jurisdiction?
+
+You get a quick result, charged at the quick rate (1 credit). The response includes:
+
+```json
+{
+  "verification_level": "quick",
+  "full_verification_available": false,
+  "reason": {
+    "code": "jurisdiction_quick_only",
+    "message": "This jurisdiction currently supports quick verification only. Deep verification is not available for this jurisdiction at this time."
+  }
+}
+```
+
+This way you never pay for data you can't get, and a single integration works across every supported jurisdiction without branching logic.
+
+When deep is available, responses include `"full_verification_available": true` and no `reason` field.
+
+## Choosing a tier
+
+| You need to know… | Tier |
+|---|---|
+| Is this business real and active right now? | Quick |
+| Is this the right counterparty to sign a contract with? | Deep |
+| Is the invoice from a legitimate company? | Quick |
+| Who are the officers and registered agent? | Deep |
+| Does this company match my CRM record? | Quick |
+| Full KYB file for compliance review | Deep |
+
+If in doubt, start with quick. You can always promote to deep on the entities that matter.
+
+## Per-jurisdiction availability
+
+See the [Coverage](/coverage/) page for a live filterable table showing which tier is available in each jurisdiction. Coverage is sourced from `/v1/config` and updates as new jurisdictions ship.

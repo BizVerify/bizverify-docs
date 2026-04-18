@@ -25,6 +25,13 @@ export default defineConfig({
 				{ label: 'Quickstart', slug: 'quickstart' },
 				{ label: 'Authentication', slug: 'authentication' },
 				{
+					label: 'Concepts',
+					items: [
+						{ label: 'Verification tiers', slug: 'concepts/tiers' },
+					],
+				},
+				{ label: 'Coverage', slug: 'coverage' },
+				{
 					label: 'Guides',
 					items: [
 						{ label: 'Async Jobs', slug: 'guides/async-jobs' },
@@ -50,7 +57,6 @@ export default defineConfig({
 						{ label: 'Go', slug: 'sdks/go' },
 					],
 				},
-				{ label: 'Jurisdiction Coverage', slug: 'jurisdictions' },
 				{ label: 'Changelog', slug: 'changelog' },
 				{
 					label: 'OpenAPI Spec ↗',

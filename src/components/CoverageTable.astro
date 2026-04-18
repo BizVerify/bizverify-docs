@@ -1,0 +1,171 @@
+---
+// Client-side filterable coverage table.
+// Fetches /v1/config at load time so the table always reflects current state.
+---
+
+<div class="coverage-wrap">
+  <div class="coverage-controls">
+    <input
+      id="coverage-search"
+      type="search"
+      placeholder="Search jurisdictions…"
+      autocomplete="off"
+    />
+    <select id="coverage-filter">
+      <option value="all">All tiers</option>
+      <option value="deep">Deep available</option>
+      <option value="quick">Quick only</option>
+    </select>
+  </div>
+
+  <div id="coverage-status" class="coverage-status">Loading…</div>
+
+  <table id="coverage-table" class="coverage-table" hidden>
+    <thead>
+      <tr>
+        <th>Jurisdiction</th>
+        <th>Code</th>
+        <th>Quick check</th>
+        <th>Deep verification</th>
+      </tr>
+    </thead>
+    <tbody id="coverage-body"></tbody>
+  </table>
+
+  <p class="coverage-total" id="coverage-total"></p>
+</div>
+
+<script is:inline>
+  (() => {
+    const API_URL = 'https://api.bizverify.co/v1/config';
+
+    const statusEl = document.getElementById('coverage-status');
+    const tableEl = document.getElementById('coverage-table');
+    const bodyEl = document.getElementById('coverage-body');
+    const totalEl = document.getElementById('coverage-total');
+    const searchEl = document.getElementById('coverage-search');
+    const filterEl = document.getElementById('coverage-filter');
+
+    let rows = [];
+
+    function render() {
+      const q = (searchEl.value || '').trim().toLowerCase();
+      const filter = filterEl.value;
+
+      const visible = rows.filter((r) => {
+        if (filter === 'deep' && !r.supportsDeep) return false;
+        if (filter === 'quick' && r.supportsDeep) return false;
+        if (!q) return true;
+        return (
+          r.name.toLowerCase().includes(q) ||
+          r.code.toLowerCase().includes(q)
+        );
+      });
+
+      bodyEl.innerHTML = visible
+        .map(
+          (r) => `
+          <tr>
+            <td>${escapeHtml(r.name)}</td>
+            <td><code>${escapeHtml(r.code)}</code></td>
+            <td>${r.supportsQuick ? '✓' : '—'}</td>
+            <td>${r.supportsDeep ? '✓' : '—'}</td>
+          </tr>
+        `,
+        )
+        .join('');
+
+      totalEl.textContent = `Showing ${visible.length} of ${rows.length} jurisdictions.`;
+    }
+
+    function escapeHtml(s) {
+      return String(s).replace(/[&<>"']/g, (c) => ({
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        '"': '&quot;',
+        "'": '&#39;',
+      }[c]));
+    }
+
+    fetch(API_URL)
+      .then((r) => {
+        if (!r.ok) throw new Error(`HTTP ${r.status}`);
+        return r.json();
+      })
+      .then((data) => {
+        const us = (data.jurisdictions?.supported?.us || []).map((j) => ({
+          name: j.name,
+          code: j.code,
+          supportsQuick: !!j.capabilities?.supportsQuick,
+          supportsDeep: !!j.capabilities?.supportsDeep,
+        }));
+        const intl = (data.jurisdictions?.supported?.international || []).map((j) => ({
+          name: j.name,
+          code: j.code,
+          supportsQuick: !!j.capabilities?.supportsQuick,
+          supportsDeep: !!j.capabilities?.supportsDeep,
+        }));
+        rows = [...us, ...intl].sort((a, b) => a.name.localeCompare(b.name));
+
+        statusEl.hidden = true;
+        tableEl.hidden = false;
+        render();
+      })
+      .catch((err) => {
+        statusEl.textContent = `Couldn't load coverage data (${err.message}). Try refreshing.`;
+      });
+
+    searchEl.addEventListener('input', render);
+    filterEl.addEventListener('change', render);
+  })();
+</script>
+
+<style>
+  .coverage-wrap {
+    margin: 1.5rem 0;
+  }
+  .coverage-controls {
+    display: flex;
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+    flex-wrap: wrap;
+  }
+  .coverage-controls input,
+  .coverage-controls select {
+    padding: 0.5rem 0.75rem;
+    border: 1px solid var(--sl-color-gray-5);
+    border-radius: 6px;
+    background: var(--sl-color-bg);
+    color: var(--sl-color-text);
+    font-size: 0.95rem;
+  }
+  .coverage-controls input {
+    flex: 1 1 240px;
+    min-width: 200px;
+  }
+  .coverage-status {
+    padding: 1rem;
+    color: var(--sl-color-text-accent);
+    font-style: italic;
+  }
+  .coverage-table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+  .coverage-table th,
+  .coverage-table td {
+    text-align: left;
+    padding: 0.55rem 0.75rem;
+    border-bottom: 1px solid var(--sl-color-gray-5);
+  }
+  .coverage-table th {
+    font-weight: 600;
+    background: var(--sl-color-gray-6);
+  }
+  .coverage-total {
+    margin-top: 0.75rem;
+    color: var(--sl-color-text-accent);
+    font-size: 0.9rem;
+  }
+</style>
