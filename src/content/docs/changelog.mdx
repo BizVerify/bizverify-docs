@@ -7,6 +7,20 @@ Notable changes to the BizVerify API. For the machine-readable API schema, see t
 
 ---
 
+## 2026-05-05
+
+### Fixed
+- Async verification jobs that fail now correctly deliver the `verification.failed` webhook (previously sent `verification.completed` with empty data) and auto-refund credits.
+- `GET /v1/verify/status/:jobId` now returns the same response shape as the sync `POST /v1/verify` endpoint and includes `entityId` on completed jobs.
+- `POST /v1/verify` and `POST /v1/search` reject invalid jurisdictions before charging credits — users with low balances see the validation error rather than `INSUFFICIENT_CREDITS`.
+
+### Security
+- OAuth tokens now require the appropriate scope on REST account and billing routes (previously enforced only for MCP):
+  - `account:read` — `GET /v1/account`, `GET /v1/account/usage`, `GET /v1/account/data-export`
+  - `account:write` — `PATCH /v1/account`, `PUT /v1/account/password`, `DELETE /v1/account`, `POST /v1/account/keys`, `DELETE /v1/account/keys/:keyId`
+  - `billing` — `GET /v1/billing`, `POST /v1/billing/purchase`
+- API key auth continues to grant all scopes.
+
 ## 2026-04-18
 
 ### Added
