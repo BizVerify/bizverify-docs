@@ -1,11 +1,14 @@
 // @ts-check
 import { defineConfig } from 'astro/config';
 import starlight from '@astrojs/starlight';
+import sitemap from '@astrojs/sitemap';
+import starlightLlmsTxt from 'starlight-llms-txt';
 
 export default defineConfig({
 	site: 'https://docs.bizverify.co',
 	integrations: [
 		starlight({
+			plugins: [starlightLlmsTxt()],
 			title: 'BizVerify Docs',
 			logo: {
 				src: './src/assets/logo.svg',
@@ -70,5 +73,6 @@ export default defineConfig({
 				},
 			],
 		}),
+		sitemap(),
 	],
 });
