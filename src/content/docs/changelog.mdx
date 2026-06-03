@@ -7,7 +7,29 @@ Notable changes to the BizVerify API. For the machine-readable API schema, see t
 
 ---
 
+## 2026-06-03
+
+### Changed
+- MCP tool descriptions now state each tool's credit cost, authentication requirements, and usage guidance — improves tool selection for AI agents.
+
+## 2026-06-01
+
+### Added
+- Three new verified jurisdictions: Massachusetts (`us-ma`), Wisconsin (`us-wi`), and Alabama (`us-al`)
+
+### Removed
+- Colorado (`us-co`) and Wyoming (`us-wy`) are temporarily unavailable while we work to restore coverage. **19 active jurisdictions total.**
+
+## 2026-05-24
+
+### Added
+- Root discovery endpoint — `GET /` returns a JSON entry point linking to the docs, API reference, OpenAPI spec, MCP endpoint, and health check
+- `GET /.well-known/security.txt` (RFC 9116) for security researchers
+
 ## 2026-05-05
+
+### Changed
+- `POST /v1/search` now charges credits only for jurisdictions that completed successfully — failed jurisdictions are refunded and listed in the new `jurisdictions_failed` response field.
 
 ### Fixed
 - Async verification jobs that fail now correctly deliver the `verification.failed` webhook (previously sent `verification.completed` with empty data) and auto-refund credits.
@@ -96,6 +118,4 @@ Notable changes to the BizVerify API. For the machine-readable API schema, see t
 - Initial API launch with 14 verified jurisdictions
 - Credit-based billing with Stripe checkout
 - Verification coverage across 50 US states and 11 international jurisdictions
-- Live data retrieval from official sources
-- Globally distributed request infrastructure
 - Sentry error monitoring
