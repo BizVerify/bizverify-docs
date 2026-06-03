@@ -21,7 +21,7 @@ pending → processing → completed
                      → failed (credits auto-refunded)
 ```
 
-1. **Pending** — job is queued, waiting to be picked up by a worker
+1. **Pending** — job is queued, waiting to be processed
 2. **Processing** — the latest record is being retrieved from the official source
 3. **Completed** — data retrieved successfully, entity cached
 4. **Failed** — all retry attempts exhausted (3 attempts total). Credits are automatically refunded. See [Credits & Billing](/guides/billing/) for refund details.
