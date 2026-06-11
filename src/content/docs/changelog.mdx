@@ -7,6 +7,11 @@ Notable changes to the BizVerify API. For the machine-readable API schema, see t
 
 ---
 
+## 2026-06-12
+
+### Fixed
+- `force_refresh` on `POST /v1/verify` is now applied only to `deep` verifications, as documented. On `quick` verifications (including a `deep` request that falls back to `quick` where deep is unavailable) the flag is ignored, so a recent stored result may be returned. Quick verifications remain 1 credit.
+
 ## 2026-06-11
 
 ### Changed
