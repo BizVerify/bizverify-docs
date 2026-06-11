@@ -7,6 +7,11 @@ Notable changes to the BizVerify API. For the machine-readable API schema, see t
 
 ---
 
+## 2026-06-11
+
+### Changed
+- `webhook_url` on `POST /v1/verify` must now resolve to a publicly reachable address. URLs pointing to private or reserved networks are rejected with a `400 VALIDATION_ERROR`, and the same check is applied again before each webhook delivery.
+
 ## 2026-06-03
 
 ### Changed
