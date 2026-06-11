@@ -11,6 +11,7 @@ Notable changes to the BizVerify API. For the machine-readable API schema, see t
 
 ### Changed
 - `webhook_url` on `POST /v1/verify` must now resolve to a publicly reachable address. URLs pointing to private or reserved networks are rejected with a `400 VALIDATION_ERROR`, and the same check is applied again before each webhook delivery.
+- `POST /v1/verify` now handles the optional `Idempotency-Key` header safely under concurrency. A retry carrying the same key still replays the original response without charging again, but a second request sent **while the first is still being processed** now returns `409 IDEMPOTENCY_CONFLICT` instead of being processed (and charged) twice — retry once the first request completes. The header is documented in the OpenAPI schema and limited to 128 characters; longer values are rejected with `400 VALIDATION_ERROR`.
 
 ## 2026-06-03
 
