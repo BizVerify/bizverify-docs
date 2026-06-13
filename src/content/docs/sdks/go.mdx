@@ -91,6 +91,25 @@ if err := iter.Err(); err != nil {
 }
 ```
 
+## Fetch a cached entity
+
+Retrieve a previously verified business by its entity ID (returned from a `Verify` or `Search` call) — free, no credits charged.
+
+```go
+entity, err := client.Entities.Get(ctx, "550e8400-e29b-41d4-a716-446655440000")
+if err != nil {
+    log.Fatal(err)
+}
+fmt.Println(entity.EntityName, entity.Status)
+if entity.RegisteredAgent != nil {
+    fmt.Println(entity.RegisteredAgent.Name)
+}
+fmt.Println(entity.Officers)
+if entity.LastVerifiedAt != nil {
+    fmt.Println(*entity.LastVerifiedAt)
+}
+```
+
 ## Configuration
 
 ```go

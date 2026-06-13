@@ -78,6 +78,19 @@ for await (const entity of biz.search.findAll({ entity_name: 'Acme' })) {
 }
 ```
 
+## Fetch a cached entity
+
+Retrieve a previously verified business by its `entity_id` (returned from a `verify` or `search` call) — free, no credits charged.
+
+```ts
+const entity = await biz.entities.get('550e8400-e29b-41d4-a716-446655440000');
+
+console.log(entity.entity_name, entity.status);
+console.log(entity.registered_agent?.name);
+console.log(entity.officers);
+console.log(entity.last_verified_at);
+```
+
 ## Configuration
 
 ```ts
