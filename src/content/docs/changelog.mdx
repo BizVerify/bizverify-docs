@@ -10,6 +10,7 @@ Notable changes to the BizVerify API. For the machine-readable API schema, see t
 ## 2026-06-13
 
 ### Changed
+- `GET /v1/entity/:id` now returns the full business record directly at the top level — including `registered_agent` (an object with its address), `officers`, `principal_address`, and `filing_history_summary` — instead of a nested wrapper, and adds `last_verified_at` plus a `snapshots` count (retrieve the snapshots themselves via `GET /v1/entity/:id/history`). This aligns the cached-entity response with the verification response shape. **Breaking change** for any client that read the previous nested structure. The official Node, Python, and Go SDKs are updated to match.
 - Renamed two response timestamp fields for clearer, consistent naming. `GET /v1/entity/:id` now returns `last_verified_at` (when the entity was last refreshed against the official record), and each snapshot from `GET /v1/entity/:id/history` now returns `verified_at`. This is a breaking change for any client that read the previous field names.
 
 ## 2026-06-12

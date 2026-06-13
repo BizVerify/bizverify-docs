@@ -77,6 +77,19 @@ async for result in client.search.find_all("Acme"):
     print(result.entity_name)
 ```
 
+## Fetch a cached entity
+
+Retrieve a previously verified business by its `entity_id` (returned from a `verify` or `search` call) — free, no credits charged.
+
+```python
+entity = client.entities.get("550e8400-e29b-41d4-a716-446655440000")
+
+print(entity.entity_name, entity.status)
+print(entity.registered_agent.name if entity.registered_agent else None)
+print(entity.officers)
+print(entity.last_verified_at)
+```
+
 ## Configuration
 
 ```python
