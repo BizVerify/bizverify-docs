@@ -7,6 +7,11 @@ Notable changes to the BizVerify API. For the machine-readable API schema, see t
 
 ---
 
+## 2026-06-14
+
+### Changed
+- `POST /v1/verify`: when a jurisdiction's data source can't complete a synchronous lookup, the API now returns a precise status — `503 DATA_SOURCE_UNAVAILABLE` or `504 DATA_SOURCE_TIMEOUT` — or falls back to an asynchronous verification job, instead of a generic `500`. Asynchronous job results (`check_job_status`) and the `verification.failed` webhook now carry a matching category in their `error` message, so a temporary-outage failure is distinguishable from a timeout. No request shape or field changes; existing success responses are unaffected.
+
 ## 2026-06-13
 
 ### Changed
