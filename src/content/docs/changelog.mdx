@@ -7,6 +7,11 @@ Notable changes to the BizVerify API. For the machine-readable API schema, see t
 
 ---
 
+## 2026-06-15
+
+### Fixed
+- `POST /v1/verify` for Kentucky (`us-ky`) at the `deep` level could return the details of an unrelated business; it now consistently returns the correct entity. As part of this fix, the `jurisdiction_id` returned for Kentucky entities is now a stable, unique per-record identifier — so a Kentucky `jurisdiction_id` (and its corresponding cached `entity_id`) may differ from a value stored previously. `quick` verification and `POST /v1/search` were unaffected. No response shape or field changes; SDKs need no update.
+
 ## 2026-06-14
 
 ### Changed
