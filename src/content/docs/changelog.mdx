@@ -7,6 +7,11 @@ Notable changes to the BizVerify API. For the machine-readable API schema, see t
 
 ---
 
+## 2026-06-16
+
+### Added
+- Agent-discovery metadata so the API is self-describing for AI agents and tooling. New read-only endpoints: an MCP Server Card at `/.well-known/mcp/server-card.json`, an A2A Agent Card at `/.well-known/agent-card.json`, an RFC 9727 API Catalog at `/.well-known/api-catalog`, and an Agent Skills index at `/.well-known/agent-skills/index.json` (with per-skill `SKILL.md` documents). The API root (`GET /`) now advertises these via RFC 8288 `Link` headers and serves a Markdown overview to clients that send `Accept: text/markdown`. These additions are purely discovery metadata — existing endpoints, request/response shapes, and authentication are unchanged, and SDKs need no update.
+
 ## 2026-06-15
 
 ### Fixed
