@@ -1,0 +1,97 @@
+---
+title: AML & Beneficial Ownership
+description: Use BizVerify as the registry-sourced input to an AML / KYC workflow — confirm the entity, then pull the registered agent and officers from the official record.
+---
+
+import { Tabs, TabItem } from '@astrojs/starlight/components';
+
+Anti-money-laundering and customer due-diligence workflows start from the same foundation: **is this a real, active legal entity, and who is on its official record?** BizVerify supplies that foundation straight from the current registry record — the entity's status and, where a jurisdiction publishes them, its officers and registered agent.
+
+## What BizVerify provides — and what it doesn't
+
+BizVerify returns the **official registry record**: existence, status, good standing, and the people and agent the registry lists. That is the authoritative first layer of a business AML file.
+
+It is **not** a sanctions or PEP screen, and the officer list is the registry's record of officers and directors — not a beneficial-ownership (UBO) determination. Use BizVerify for the entity and registry-listed people, then run those names through your sanctions/PEP and UBO tooling. Keeping the layers separate keeps each one auditable.
+
+## Step 1 — Confirm the entity is real and active
+
+<Tabs>
+  <TabItem label="Node.js">
+```ts
+import BizVerify from '@bizverify/sdk';
+
+const biz = new BizVerify({ apiKey: 'bv_live_...' });
+
+const result = await biz.verification.verify({
+  entity_name: 'Acme Trading Ltd',
+  jurisdiction: 'gb',
+});
+
+const eligible = result.exists && result.status === 'active' && result.good_standing === true;
+```
+  </TabItem>
+  <TabItem label="Python">
+```python
+from bizverify import BizVerify
+
+biz = BizVerify(api_key="bv_live_...")
+
+result = biz.verification.verify("Acme Trading Ltd", "gb")
+
+eligible = result.exists and result.status == "active" and result.good_standing is True
+```
+  </TabItem>
+</Tabs>
+
+A dissolved, revoked, or withdrawn entity should never enter onboarding as a live counterparty. Gating on `status` and `good_standing` first means your AML review only spends effort on entities that are actually operating.
+
+## Step 2 — Pull the officers and registered agent
+
+Deep verification returns the registry-listed people and the agent for service of process — the names your AML process screens.
+
+<Tabs>
+  <TabItem label="Node.js">
+```ts
+const job = await biz.verification.verifyAndWait(
+  { entity_name: 'Acme Trading Ltd', jurisdiction: 'gb', verification_level: 'deep' },
+  { timeoutMs: 120_000 },
+);
+
+const record = job.data;
+for (const officer of record.officers) {
+  // Feed officer.name into your sanctions / PEP / UBO screening.
+}
+record.registered_agent?.name;
+record.principal_address;
+```
+  </TabItem>
+  <TabItem label="Python">
+```python
+job = biz.verification.verify_and_wait(
+    "Acme Trading Ltd", "gb",
+    verification_level="deep",
+    timeout=120.0,
+)
+
+record = job.data
+for officer in record.officers:
+    ...  # Feed officer.name into your sanctions / PEP / UBO screening.
+record.registered_agent  # name + address
+record.principal_address
+```
+  </TabItem>
+</Tabs>
+
+## Coverage varies by registry
+
+What the officer and agent fields contain depends on what each jurisdiction's registry publishes. Some registries expose a full officer and director list; others publish only the registered agent and principal office. Check the [coverage page](/coverage) for what a given jurisdiction returns, and treat an empty `officers` list as "the registry doesn't publish officers here," not as "no officers exist."
+
+## Keep an auditable record
+
+Every deep result carries a `jurisdiction_id` and, when you fetch it later, a `last_verified_at`. Persist both so your AML file records exactly which official entity you screened and when. Because the record reflects the current registry state on each request — no stale snapshot — a periodic re-check surfaces a counterparty that has since been dissolved or lost good standing.
+
+## Related
+
+- [KYB Pipeline](/guides/kyb-pipeline) — the two-stage gate-then-enrich flow
+- [Verification tiers](/concepts/tiers) — what quick vs deep returns
+- [Coverage](/coverage) — which jurisdictions publish officers and agents

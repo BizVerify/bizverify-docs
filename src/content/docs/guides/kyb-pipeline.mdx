@@ -1,0 +1,127 @@
+---
+title: KYB Pipeline
+description: Build a Know-Your-Business pipeline — gate on a quick existence and status check, enrich with deep verification, and interpret status and good standing.
+---
+
+import { Tabs, TabItem } from '@astrojs/starlight/components';
+
+A KYB (Know-Your-Business) pipeline answers two questions about a counterparty: **is it a real, active business?** and **what is the entity record behind it?** BizVerify maps those to two tiers — a [quick check](/concepts/tiers) that gates cheaply on every request, and [deep verification](/concepts/tiers) that returns the structured record when you need it. This guide wires them into one flow.
+
+## The two-stage pattern
+
+1. **Gate** with a quick check (1 credit, available in every active jurisdiction). Confirm the entity exists, is active, and is in good standing before you spend anything else.
+2. **Enrich** with deep verification (15 credits, a subset of jurisdictions) only for entities that pass the gate and need the full record — registered agent, officers, principal address.
+
+Running the cheap check first keeps cost proportional to how far each counterparty gets in your funnel.
+
+## Stage 1 — Gate on a quick check
+
+<Tabs>
+  <TabItem label="Node.js">
+```ts
+import BizVerify from '@bizverify/sdk';
+
+const biz = new BizVerify({ apiKey: 'bv_live_...' });
+
+const result = await biz.verification.verify({
+  entity_name: 'Acme Holdings, Inc.',
+  jurisdiction: 'us-de',
+});
+
+if (!result.exists) {
+  // No matching entity on the register — reject or route to manual review.
+}
+
+const live = result.status === 'active' && result.good_standing === true;
+```
+  </TabItem>
+  <TabItem label="Python">
+```python
+from bizverify import BizVerify
+
+biz = BizVerify(api_key="bv_live_...")
+
+result = biz.verification.verify("Acme Holdings, Inc.", "us-de")
+
+if not result.exists:
+    ...  # No matching entity on the register — reject or route to manual review.
+
+live = result.status == "active" and result.good_standing is True
+```
+  </TabItem>
+</Tabs>
+
+A quick check returns `exists`, `status`, `good_standing`, the canonical `entity_name`, and `jurisdiction`. That is enough to auto-approve a clean counterparty or drop a questionable one into review — the hot-path decision most onboarding flows actually need.
+
+## Stage 2 — Enrich with deep verification
+
+For entities that pass the gate and need the full record, request deep verification. `verifyAndWait` handles the async job and returns the completed record.
+
+<Tabs>
+  <TabItem label="Node.js">
+```ts
+const job = await biz.verification.verifyAndWait(
+  { entity_name: 'Acme Holdings, Inc.', jurisdiction: 'us-de', verification_level: 'deep' },
+  { timeoutMs: 120_000 },
+);
+
+const record = job.data;
+record.registered_agent;   // { name, address }
+record.officers;           // [{ name, title, address }]
+record.principal_address;
+record.formation_date;
+record.jurisdiction_id;    // registry identifier — store this
+```
+  </TabItem>
+  <TabItem label="Python">
+```python
+job = biz.verification.verify_and_wait(
+    "Acme Holdings, Inc.", "us-de",
+    verification_level="deep",
+    timeout=120.0,
+)
+
+record = job.data
+record.registered_agent    # { name, address }
+record.officers            # [{ name, title, address }]
+record.principal_address
+record.formation_date
+record.jurisdiction_id      # registry identifier — store this
+```
+  </TabItem>
+</Tabs>
+
+Deep verification returns everything from the quick check plus `entity_type`, `formation_date`, `jurisdiction_id`, `registered_agent`, `officers`, `principal_address`, and `filing_history_summary`. Which fields carry data depends on what the jurisdiction's registry publishes — some registries expose officers, others only the registered agent. Add `force_refresh: true` (25 credits) when you need the most current result instead of a recent stored one.
+
+## Interpreting status and good standing
+
+`status` is the entity's lifecycle state; `good_standing` is a separate compliance signal. Read both — in some jurisdictions an entity is `active` but not in good standing (for example, delinquent on an annual report), and that combination is exactly what a KYB gate should catch.
+
+| `status` | `good_standing` | KYB decision |
+|---|---|---|
+| `active` | `true` | Pass — real and current |
+| `active` | `false` | Review — exists but has a compliance gap (e.g. delinquent filing) |
+| `dissolved` / `revoked` / `withdrawn` | `false` | Fail — no longer a live counterparty |
+| `inactive` | `null` | Not a live entity (e.g. a name-only record) — treat as no match |
+
+The exact status vocabulary varies by jurisdiction; the normalized `status` and `good_standing` fields are consistent across all of them, so one branch of logic works everywhere.
+
+## Run it in batch
+
+For portfolio screening or re-verification, drive the same two stages over a list. Deep verifications are asynchronous — use [webhooks](/webhooks) to receive results instead of blocking, or [async jobs](/guides/async-jobs) to submit and poll. Failed jobs refund their credits automatically, so a transient registry issue never costs you.
+
+## Store the `jurisdiction_id`
+
+Persist the `jurisdiction_id` from each deep result. It is the stable registry key, so you can re-check the same entity later without a fuzzy name match, and [fetch the cached record](/sdks/node) for free between verifications:
+
+```ts
+const entity = await biz.entities.get(storedEntityId);
+console.log(entity.entity_name, entity.status, entity.last_verified_at);
+```
+
+## Related
+
+- [Verification tiers](/concepts/tiers) — quick vs deep, cost, and availability
+- [AI Agents](/guides/ai-agents) — run the gate from an LLM agent or MCP client
+- [Webhooks](/webhooks) and [Async Jobs](/guides/async-jobs) — batch and non-blocking flows
+- [Error Codes](/errors) — handling registry timeouts and no-match results
