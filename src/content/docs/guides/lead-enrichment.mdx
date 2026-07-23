@@ -1,0 +1,104 @@
+---
+title: Lead Enrichment
+description: Enrich CRM leads and signups with the official business record — confirm the company is real, canonicalize its name, and attach entity type, formation date, and address.
+---
+
+import { Tabs, TabItem } from '@astrojs/starlight/components';
+
+A raw lead is usually just a typed company name. Lead enrichment turns that string into a verified business: confirmation the company is a real, active entity, its canonical registered name, and the structured record behind it. BizVerify does this from the current registry, so an enriched lead reflects the company's real status — not a data broker's stale copy.
+
+## Two enrichment paths
+
+- **Exact name on signup** → a [quick check](/concepts/tiers) confirms the entity and returns the canonical name in one call, fast enough to run inline.
+- **Fuzzy or partial name** → [search](/sdks/node) first to resolve candidates, then verify the chosen match.
+
+## Real-time enrichment on signup
+
+When a user types their company name into a signup form, verify it inline and store the canonical result.
+
+<Tabs>
+  <TabItem label="Node.js">
+```ts
+import BizVerify from '@bizverify/sdk';
+
+const biz = new BizVerify({ apiKey: 'bv_live_...' });
+
+const result = await biz.verification.verify({
+  entity_name: 'acme holdings',
+  jurisdiction: 'us-de',
+});
+
+if (result.exists) {
+  lead.companyName = result.entity_name;   // canonical registered form
+  lead.status = result.status;             // active / dissolved / ...
+  lead.verified = result.good_standing === true;
+}
+```
+  </TabItem>
+  <TabItem label="Python">
+```python
+from bizverify import BizVerify
+
+biz = BizVerify(api_key="bv_live_...")
+
+result = biz.verification.verify("acme holdings", "us-de")
+
+if result.exists:
+    lead.company_name = result.entity_name   # canonical registered form
+    lead.status = result.status              # active / dissolved / ...
+    lead.verified = result.good_standing is True
+```
+  </TabItem>
+</Tabs>
+
+Even the quick check upgrades a lead: a messy input becomes the canonical registered name, plus a real/active signal you can score on.
+
+## Resolve fuzzy names with search
+
+When the input is partial or ambiguous, search returns ranked candidates with a `confidence` score. Pick the best match, then verify it.
+
+<Tabs>
+  <TabItem label="Node.js">
+```ts
+const page = await biz.search.find({ entity_name: 'acme', jurisdiction: 'us-de', limit: 5 });
+const best = page.results[0];   // highest confidence
+
+if (best && best.confidence > 0.9) {
+  const enriched = await biz.entities.get(best.entity_id);
+}
+```
+  </TabItem>
+  <TabItem label="Python">
+```python
+response = biz.search.find("acme", jurisdiction="us-de", limit=5)
+best = response.results[0]   # highest confidence
+
+if best and best.confidence > 0.9:
+    enriched = biz.entities.get(best.entity_id)
+```
+  </TabItem>
+</Tabs>
+
+## Enrich the full record in batch
+
+For an existing CRM, run [deep verification](/concepts/tiers) over your accounts to attach the structured record — `entity_type`, `formation_date`, `registered_agent`, `principal_address`, and the `jurisdiction_id`. Deep verifications are asynchronous; use [webhooks](/webhooks) to collect results without blocking your batch.
+
+```ts
+const job = await biz.verification.verifyAndWait(
+  { entity_name: account.name, jurisdiction: account.jurisdiction, verification_level: 'deep' },
+  { timeoutMs: 120_000 },
+);
+account.entityType = job.data.entity_type;
+account.foundedOn = job.data.formation_date;
+account.registryId = job.data.jurisdiction_id;
+```
+
+## Dedupe on the `jurisdiction_id`
+
+Two leads with slightly different spellings of the same company resolve to the same `jurisdiction_id`. Use it as the dedupe key so "Acme Holdings, Inc." and "acme holdings inc" collapse into one account.
+
+## Related
+
+- [Verification tiers](/concepts/tiers) — quick for real-time, deep for the full record
+- [KYB Pipeline](/guides/kyb-pipeline) — when enrichment doubles as a compliance gate
+- [AI Agents](/guides/ai-agents) — enrich leads from an agent workflow
