@@ -105,6 +105,20 @@ Credits are automatically refunded when a verification or search job fails after
 
 The `X-Credits-Remaining` header on subsequent requests will reflect the refunded amount.
 
+### A confirmed no-match is billed
+
+Not finding the business is a result, not a failure. When a verification completes and establishes that the name isn't registered in that jurisdiction, the call returns `404 ENTITY_NOT_FOUND` and **is charged** at the normal rate — the lookup ran against the current official record and answered your question.
+
+Refunds are for calls that couldn't produce an answer at all:
+
+| Outcome | Status | Charged? |
+|---------|--------|----------|
+| Business found | `200` | Yes |
+| Confirmed no-match | `404 ENTITY_NOT_FOUND` | Yes |
+| Source temporarily unavailable | `503 DATA_SOURCE_UNAVAILABLE` | No — refunded |
+| Source timed out | `504 DATA_SOURCE_TIMEOUT` | No — refunded |
+| Async job failed after all retries | webhook `verification.failed` | No — refunded |
+
 In rare cases, refunds can also be issued manually by BizVerify support. Contact [support@bizverify.co](mailto:support@bizverify.co) if you believe a charge was incorrect.
 
 For more on how async jobs work and when failures occur, see [Async Jobs](/guides/async-jobs/).
