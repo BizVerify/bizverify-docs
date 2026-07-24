@@ -7,6 +7,11 @@ Notable changes to the BizVerify API. For the machine-readable API schema, see t
 
 ---
 
+## 2026-07-23
+
+### Changed
+- A confirmed no-match on `POST /v1/verify` is now billed as a completed verification instead of being refunded. The lookup runs against the current official record and establishes that the business is not registered in that jurisdiction — that finding is the result you asked for, so it consumes credits like any other verification (quick: 1 credit, deep: 15). The response is unchanged: still `404 ENTITY_NOT_FOUND`. Genuine failures are unaffected and continue to refund automatically — `503 DATA_SOURCE_UNAVAILABLE`, `504 DATA_SOURCE_TIMEOUT`, and asynchronous jobs that fail after all retry attempts. No request or response shape changes; SDKs need no update.
+
 ## 2026-06-16
 
 ### Added
