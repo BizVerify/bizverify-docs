@@ -7,6 +7,11 @@ Notable changes to the BizVerify API. For the machine-readable API schema, see t
 
 ---
 
+## 2026-08-13
+
+### Changed
+- `POST /v1/checker` (the free, no-signup business checker) now enforces a small shared capacity ceiling and a per-IP daily limit, alongside the existing per-IP per-minute rate limit. When free checking is momentarily at capacity, the endpoint returns HTTP `429` with a new error code — `FREE_TIER_CAPACITY` — and a `Retry-After` header of a few seconds; this is a transient free-tier state, not an API outage and not a caller error. Exceeding the per-minute or per-day IP limit continues to return `429 RATE_LIMIT_EXCEEDED`, which now also carries a `Retry-After` header. Requests made with an API key are unaffected — the ceiling applies to the free checker only. SDKs need no update.
+
 ## 2026-07-23
 
 ### Changed
